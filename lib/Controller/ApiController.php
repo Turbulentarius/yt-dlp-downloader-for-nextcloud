@@ -54,7 +54,7 @@ class ApiController extends OCSController {
     }
 
     // Validate the File name
-    if (!preg_match('/^[a-zA-Z0-9-_]+$/', $fileName)) {
+    if (!preg_match('/^[a-zA-Z0-9-_\.]+$/', $fileName)) {
         return new DataResponse(['message' => 'File name contains invalid characters.'], 400, ['Content-Type' => 'application/json']);
     }
 
@@ -85,15 +85,23 @@ class ApiController extends OCSController {
 
     // Execute the command
     set_time_limit(0);
-    $output = @shell_exec($command);
+    // $output = @shell_exec($command);
+    $output = @shell_exec($command . " 2>&1");
     sleep(1);
+
+    $botMsg = 'Sign in to confirm you’re not a bot';
+    $message = 'The downloaded file could not be located in the tmp folder!';
+    if (strpos($output, $botMsg) !== false) {
+      $message = $botMsg . ': This can happen if your IP is restricted or yt-dlp needs updating.';
+    }
 
     // Check if downloaded file exists
     $downloadedFile = glob($tmpDir . '/' . $hashedFilename . '.*');
     if (empty($downloadedFile)) {
       return new DataResponse([
-           'message' => 'The downloaded file could not be located in the tmp folder!'
-      ], 400, ['Content-Type' => 'application/json']);
+           'message' => $message,
+           'output' => 'test'
+      ]);
     }
 
     try {
@@ -114,11 +122,12 @@ class ApiController extends OCSController {
       $downloaderFolder->newFile(basename($fileName . '.' .$fileExtension))->putContent($content);
     } catch (\Exception $e) {
       return new DataResponse([
-           'message' => 'Error trying to move the file'
-      ], 500, ['Content-Type' => 'application/json']);
+           'message' => 'Error trying to move the file',
+           'output' =>  $e->getMessage()
+      ]);
     }
 
-    return new DataResponse(['message' => 'success', 'file' => 'downloader/' + $fileName . '.' .$fileExtension], 200, ['Content-Type' => 'application/json']);
+    return new DataResponse(['message' => 'success', 'file' => 'downloader/' . $fileName . '.' .$fileExtension]);
   }
 
 
