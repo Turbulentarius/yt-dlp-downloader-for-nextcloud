@@ -12,7 +12,7 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCSController;
 use OCP\IRequest;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 
 use OCP\Files\IRootFolder;
 use OCP\IUserSession;
@@ -21,7 +21,7 @@ opcache_invalidate(__FILE__, true);
 
 class ApiController extends OCSController {
 
-  public function __construct(string $appName, IRequest $request, ILogger $logger) {
+  public function __construct(string $appName, IRequest $request, LoggerInterface $logger) {
     parent::__construct($appName, $request);
     $this->logger = $logger;
   }
